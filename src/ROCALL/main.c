@@ -33,10 +33,15 @@
 //
 HANDLE g_hLoggingPort = INVALID_HANDLE_VALUE;
 
-// 
+//
 // Number of fuzzing passes
 //
 ULONG g_pcValue = FUZZ_PASS_COUNT;
+
+//
+// Timeout interval (in seconds) for each service fuzzing
+//
+ULONG g_timeOut = 30;
 
 //
 // Verbose logging
@@ -384,7 +389,7 @@ void FuzzRun(
             (LPVOID)&CalleParam, 0, &dwThreadId);
 
         if (hThread) {
-            if (WaitForSingleObject(hThread, 30 * 1000) == WAIT_TIMEOUT) {
+            if (WaitForSingleObject(hThread, g_timeOut * 1000) == WAIT_TIMEOUT) {
                 _strcpy_a(szConsoleText, "Timeout reached for callproc of Service: ");
                 ultostr_a(CalleParam.ServiceId, _strend_a(szConsoleText));
                 _strcat_a(szConsoleText, "\r\n");
@@ -475,7 +480,8 @@ VOID FuzzInit(
     _In_ BOOL enableLog,
     _In_ BOOL verboseLog,
     _In_ ULONG pcValue,
-    _In_ ULONG syscallStartFrom
+    _In_ ULONG syscallStartFrom,
+    _In_ ULONG timeOut
 )
 {
     BOOL LogEnabled = FALSE;
@@ -532,6 +538,8 @@ VOID FuzzInit(
     if (pcValue) {
         g_pcValue = pcValue;
     }
+
+    g_timeOut = timeOut;
 
     g_bLogVerbose = verboseLog;
 
@@ -633,12 +641,14 @@ VOID FuzzInit(
     OutputConsoleMessage("[-] Leaving FuzzInit()\r\n");
 }
 
-#define T_USAGE "ROCALL - ReactOS syscall fuzzer\r\nUsage:  [-win32k] [-logn | -logv] [-pc Value] [-sc Value]\r\n\
-\r\n-logn - enable logging via COM1 port, service name will be logged, default disabled;\r\n\
--logv - enable logging via COM1 port, service name and call parameters will be logged(slow), default disabled;\r\n\
+#define T_USAGE "ROCALL - ReactOS syscall fuzzer\r\nUsage: [-logn | -logv] [-win32k] [-pc Value] [-sc Value] [-timeout Value]\r\n\
+\r\n\
+-logn - enable logging via COM1 port, service name will be logged, default disabled;\r\n\
+-logv - enable logging via COM1 port, service name and call parameters will be logged (slow), default disabled;\r\n\
 -win32k - launch win32k service table fuzzing, default ntoskrnl service table fuzzing;\r\n\
--pc Value - number of passes for each service(default value 1024);\r\n\
--sc Value - start fuzzing from service entry number(index from 0), default 0.\r\n"
+-pc Value - number of passes for each service (default value 1024);\r\n\
+-sc Value - start fuzzing from service entry number (index from 0), default 0.\r\n\
+-timeout Value - timeout interval (in seconds) for each service fuzzing, default 30 secs.\r\n"
 
 /*
 * main
@@ -651,7 +661,7 @@ VOID FuzzInit(
 void main()
 {
     BOOL    probeWin32k, enableLog, verboseLog;
-    ULONG   PassCount = 0, SyscallStartFrom = 0;
+    ULONG   PassCount = 0, SyscallStartFrom = 0, TimeOut = 0;
     PVOID   ExceptionHandler;
     TCHAR   text[64];
 
@@ -692,6 +702,8 @@ void main()
         {
             PassCount = strtoul(text);
         }
+        if (PassCount == 0)
+            PassCount = FUZZ_PASS_COUNT;
 
         RtlSecureZeroMemory(text, sizeof(text));
         if (GetCommandLineOption(TEXT("-sc"), TRUE, text, sizeof(text) / sizeof(TCHAR)))
@@ -699,10 +711,15 @@ void main()
             SyscallStartFrom = strtoul(text);
         }
 
-        if (PassCount == 0)
-            PassCount = FUZZ_PASS_COUNT;
+        RtlSecureZeroMemory(text, sizeof(text));
+        if (GetCommandLineOption(TEXT("-timeout"), TRUE, text, sizeof(text) / sizeof(TCHAR)))
+        {
+            TimeOut = strtoul(text);
+        }
+        if (TimeOut == 0)
+            TimeOut = 30;
 
-        FuzzInit(probeWin32k, enableLog, verboseLog, PassCount, SyscallStartFrom);
+        FuzzInit(probeWin32k, enableLog, verboseLog, PassCount, SyscallStartFrom, TimeOut);
 
         RemoveVectoredExceptionHandler(ExceptionHandler);
     }
