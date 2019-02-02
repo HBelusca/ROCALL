@@ -25,8 +25,7 @@
 
 #pragma once
 
-#pragma comment(lib, "ntdll.lib")
-
+#pragma comment(lib, "C:/WinDDK/7600.16385.1/lib/wnet/i386/ntdll.lib")
 
 #if defined (__cplusplus)
 extern "C" {

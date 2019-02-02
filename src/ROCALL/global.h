@@ -40,6 +40,9 @@
 
 #include <Windows.h>
 #include <ntstatus.h>
+
+#include "D:/rossrc/reactos/sdk/include/psdk/sal.h"
+
 #include "roos.h"
 #include "minirtl/minirtl.h"
 #include "minirtl/_filename.h"

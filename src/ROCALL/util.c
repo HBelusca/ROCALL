@@ -79,7 +79,8 @@ BOOL IsReactOS(
     LPTSTR lpBuffer;
     HANDLE hSection = NULL;
     const TCHAR szRegKey[] = TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion");
-    STATIC_UNICODE_STRING(usSectionName, L"\\KnownDlls\\kernel32_vista.dll");
+    // STATIC_UNICODE_STRING(usSectionName, L"\\KnownDlls\\kernel32_vista.dll");
+    static UNICODE_STRING usSectionName = { sizeof(L"\\KnownDlls\\kernel32_vista.dll") - sizeof(WCHAR), sizeof(L"\\KnownDlls\\kernel32_vista.dll"), L"\\KnownDlls\\kernel32_vista.dll" };
     OBJECT_ATTRIBUTES obja = RTL_INIT_OBJECT_ATTRIBUTES(&usSectionName, OBJ_CASE_INSENSITIVE);
 
     if (NT_SUCCESS(NtOpenSection(&hSection, SECTION_QUERY, &obja))) {
