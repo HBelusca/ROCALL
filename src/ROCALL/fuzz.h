@@ -33,8 +33,9 @@ typedef struct _REACTOS_VERSION {
 #define FUZZ_PASS_COUNT 1024
 
 
-#define SIZEOF_FUZZDATA 10 
+#define SIZEOF_FUZZDATA 18
 static const DWORD fuzzdata[SIZEOF_FUZZDATA] = {
-            0x00000000, 0x0000001, 0x0000ffff, 0x0000fffe, 0x7fffffff,
-            0x7ffffffe, 0x80000000, 0x80000001, 0xffffffff, 0xfffffffe
+            0x00000000, 0x00000001, 0x00000010, 0x0000fff0, 0x0000fffe, 0x0000ffff,
+            0x7ffffff0, 0x7ffffffe, 0x7fffffff, 0x80000000, 0x80000001, 0x80000010,
+            0xbadcafee, 0xdeadbad0, 0xdeadbeef, 0xfffffff0, 0xfffffffe, 0xffffffff
 };
